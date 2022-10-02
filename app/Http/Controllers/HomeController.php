@@ -2,8 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\PollTitle;
-use Illuminate\Contracts\Session\Session;
 use Illuminate\Http\Request;
 
 
@@ -13,26 +11,24 @@ class HomeController extends Controller
     {
         $this->middleware('auth');
     }
-    public function index(Request $request)
+    public function index()
     {
-        $checkpoll = PollTitle::get();
-
-        return view('home', ['checkpoll' => $checkpoll]);
+        return view('home');
     }
     public function candidateNo(Request $request)
     {
         $request->validate([
-            'candidate-no' => 'required | numeric',
+            'candidate_no' => 'required | numeric',
         ]);
-        if (Request('candidate-no') < 2 || Request('candidate-no') > 4) {
+        if ($request->candidate_no < 2 || $request->candidate_no > 4) {
             return back()->with('msge-3', 'Candidates no. must be between 2 to 4');
         }
-        if (Request('candidate-no') == 2) {
-            return back()->with('2-can', ' ');
-        } elseif (Request('candidate-no') == 3) {
-            return back()->with('3-can', ' ');
+        if ($request->candidate_no == 2) {
+            return back()->with('can', 2);
+        } elseif ($request->candidate_no == 3) {
+            return back()->with('can', 3);
         } else {
-            return back()->with('4-can', ' ');
+            return back()->with('can', 4);
         }
     }
 }

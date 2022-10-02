@@ -1,5 +1,15 @@
 <?php
 
+use App\Http\Controllers\AddCandidateController;
+use App\Http\Controllers\ControlController;
+use App\Http\Controllers\EmailVerifyController;
+use App\Http\Controllers\Guest\LoginController;
+use App\Http\Controllers\Guest\PasswordResetController;
+use App\Http\Controllers\Guest\RegisterController;
+use App\Http\Controllers\HomeController;
+use App\Http\Controllers\PublishController;
+use App\Http\Controllers\ResultController;
+use App\Http\Controllers\VoteController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -13,51 +23,49 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::get('/', 'App\Http\Controllers\Auth\LoginController@index')
-    ->name('login');
+//login
+Route::get('/', [LoginController::class, 'index'])->name('login');
+Route::post('/login', [LoginController::class, 'login'])->name('user.login');
 
-Route::post('/login', 'App\Http\Controllers\Auth\LoginController@login')
-    ->name('user.login');
-Route::post('/logout', 'App\Http\Controllers\Auth\LoginController@logout')
-    ->name('user.logout');
+//logout
+Route::post('/logout', [LoginController::class, 'logout'])->name('user.logout');
 
-Route::get('/register', 'App\Http\Controllers\Auth\RegisterController@index')
-    ->name('register');
-Route::post('/register', 'App\Http\Controllers\Auth\RegisterController@store')
-    ->name('user.register');
+//register
+Route::get('/register', [RegisterController::class, 'index'])->name('register');
+Route::post('/register', [RegisterController::class, 'store'])->name('user.register');
 
-Route::get('/home', 'App\Http\Controllers\HomeController@index')
-    ->name('home');
-Route::post('/reg/no/candidate', 'App\Http\Controllers\HomeController@candidateNo')
-    ->name('no.candidate');
+//verify mail
+// Route::get('/verify/{user_id}/{token}', [RegisterController::class, 'verifymail'])->name('verify.mail');
 
-Route::post('/reg/add/can2', 'App\Http\Controllers\AddCandidateController@can2')
-    ->name('add.can2');
-Route::post('/reg/add/can3', 'App\Http\Controllers\AddCandidateController@can3')
-    ->name('add.can3');
-Route::post('/reg/add/can4', 'App\Http\Controllers\AddCandidateController@can4')
-    ->name('add.can4');
+//password reset
+Route::get('/forgotpassword', [PasswordResetController::class, 'index'])->name('forgetpassword');
+Route::post('/resetlink', [PasswordResetController::class, 'resetLink'])->name('resetLink.mail');
 
-Route::get('/{id}/control-centre', 'App\Http\Controllers\ControlController@index')
-    ->name('control');
-Route::get('/{id}/vote-centre', 'App\Http\Controllers\ControlController@voteCentre')
-    ->name('vote.centre');
+Route::get('/home', [HomeController::class, 'index'])->name('home');
 
-Route::post('/{id}/publish', 'App\Http\Controllers\Pub_EndController@publish')
-    ->name('publish.poll');
-Route::post('/{id}/end', 'App\Http\Controllers\Pub_EndController@endpoll')
-    ->name('end.poll');
+// get number of candidate for the poll
+Route::post('/reg/no/candidate', [HomeController::class, 'candidateNo'])->name('no.candidate');
 
-Route::get('/{id}/vote', 'App\Http\Controllers\EmailVerifyController@emailRequest')
-    ->name('get.email');
-Route::post('/{id}/email/verify', 'App\Http\Controllers\EmailVerifyController@emailVerify')
-    ->name('verify.email');
+// add candidate 
+Route::post('/reg/add-candidate', [AddCandidateController::class, 'createPoll'])->name('add.can');
 
-Route::post('/{id}/vote', 'App\Http\Controllers\VoteController@vote')
-    ->name('vote.poll');
 
-Route::get('/{id}/result', 'App\Http\Controllers\ResultController@index')
-    ->name('poll.result');
+Route::get('/{poll_id}/control-centre', [ControlController::class, 'index'])->name('control');
 
-Route::delete('/{id}/deletepoll', 'App\Http\Controllers\AddCandidateController@destroy')
-    ->name('delete.poll');
+Route::get('/{poll_id}/vote-centre', [ControlController::class, 'voteCentre'])->name('vote.centre');
+
+// publish poll
+Route::post('/{poll_id}/publish', [PublishController::class, 'publish'])->name('publish.poll');
+// end poll
+Route::post('/{poll_id}/end', [PublishController::class, 'endpoll'])->name('end.poll');
+
+// voting link redirecting to emai request page
+Route::get('/{poll_id}/vote', [EmailVerifyController::class, 'emailRequest'])->name('get.email');
+
+Route::post('/{poll_id}/email/verify', [EmailVerifyController::class, 'emailVerify'])->name('verify.email');
+
+Route::post('/{poll_id}/{cand_id}/vote', [VoteController::class, 'vote'])->name('vote.poll');
+
+Route::get('/{poll_id}/result', [ResultController::class, 'index'])->name('poll.result');
+
+Route::delete('/{poll_id}/deletepoll', [AddCandidateController::class, 'destroy'])->name('delete.poll');

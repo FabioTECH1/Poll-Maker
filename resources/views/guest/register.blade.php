@@ -17,6 +17,9 @@
 
             <button type="submit" class="btn btn-primary shadow-none">Sign Up</button>
         </form>
+        @if (session('email_check'))
+            <p class="text-danger text-center my-3">{{ session('email_check') }} </p>
+        @endif
     </div>
     <div class="container-fluid my-5 text-center ">
         <h5 class="">Already Registered ?</h5>

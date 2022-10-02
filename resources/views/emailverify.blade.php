@@ -8,7 +8,7 @@
                 <div class="col-sm-4"></div>
                 <div class="col-sm-4 text-center">
                     <h4 class="text-info my-3">Poll Ended</h4>
-                    <h5><a href="{{ route('poll.result', $poll->id) }}">View Result</a></h5>
+                    <h5><a href="{{ route('poll.result', $poll->poll_id) }}">View Result</a></h5>
                 </div>
                 <div class="col-sm-4"></div>
             </div>
@@ -20,9 +20,10 @@
                     <h6 class="bg-info p-2">{{ $poll->title }} ( -<span>
                             @foreach ($poll->candidates as $candidate)
                                 {{ $candidate->candidate }} -
-                            @endforeach<span>)</h6>
+                            @endforeach
+                            <span>)</h6>
                     <p class="text-muted">You can only use an email once</p>
-                    <form action="{{ route('verify.email', $id) }}" method="post">
+                    <form action="{{ route('verify.email', $poll->poll_id) }}" method="post">
                         @csrf
                         <input class="form-control my-3 shadow-none" type="email" name="email"
                             placeholder="Enter a valid email">
@@ -34,7 +35,7 @@
                     @if (Session::has('emailExists'))
                         <div class="my-4">
                             <p class="text-center text-info">You have already voted with this email</p>
-                            <h5><a href="{{ route('poll.result', $poll->id) }}">View Result</a></h5>
+                            <h5><a href="{{ route('poll.result', $poll->poll_id) }}">View Result</a></h5>
                         </div>
                     @endif
                 </div>

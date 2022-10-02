@@ -23,7 +23,17 @@ class User extends Authenticatable
     ];
     public function poll_titles()
     {
-        return $this->hasMany(Poll_Title::class);
+        return $this->hasMany(PollTitle::class);
+    }
+
+    public function verifyuser()
+    {
+        return $this->hasOne(verify_user::class);
+    }
+
+    public function passwordreset()
+    {
+        return $this->hasOne(password_reset::class);
     }
     /**
      * The attributes that should be hidden for arrays.

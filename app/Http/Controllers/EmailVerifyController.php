@@ -3,41 +3,38 @@
 namespace App\Http\Controllers;
 
 use App\Models\PollTitle;
-use App\Models\Voter;
 use Illuminate\Http\Request;
 
 class EmailVerifyController extends Controller
 {
-    public function emailRequest($id)
+    public function emailRequest($poll_id)
     {
-
-        $polls = PollTitle::where('id', $id)->count();
-        if ($polls < 1) {
-            abort(404);
+        $polls = PollTitle::where('poll_id', $poll_id)->first();
+        if (!$polls) {
+            return view('errors.404');
         }
-        $polls = PollTitle::where('id', $id)->where('status', 0)->get();
         //if poll have not been published
-        if ($polls->count() > 0) {
+        $polls = PollTitle::where('poll_id', $poll_id)->where('status', 0)->first();
+        if ($polls) {
             return redirect()->route('login');
         }
-        $polls = PollTitle::where('id', $id)->get();
+        $polls = PollTitle::where('poll_id', $poll_id)->get();
         return view('emailverify', [
-            'id' => $id,
             'polls' => $polls,
         ]);
     }
-    public function emailVerify($id, Request $request)
+    public function emailVerify($poll_id, Request $request)
     {
         $request->validate([
-            'email' => 'required | email'
+            'email' => 'required'
         ]);
-        $voterExist = Voter::where('poll_title_id', $id)->where('email', Request('email'))->get();
-        if ($voterExist->count() > 0) {
+        $polls = PollTitle::where('poll_id', $poll_id)->first();
+        $voter = $polls->voters()->where('email', $request->email)->first();
+        if ($voter) {
             $request->session()->put('voted', ' ');
             return back()->with('emailExists', ' ');
         }
-        $request->session()->put('emailVerified', Request('email'));
-        $request->session()->put('poll_id', $id);
-        return redirect()->route('vote.centre', $id);
+        $request->session()->put('emailVerified', $request->email);
+        return redirect()->route('vote.centre', [$poll_id, $request->email]);
     }
 }

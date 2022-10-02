@@ -17,8 +17,7 @@ class CreateCandidatesTable extends Migration
             $table->id();
             $table->timestamps();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->foreignId('poll_title_id')->constrained()->onDelete('cascade');
-            $table->string('candidate');
+            $table->foreignId('poll_title_id')->constrained()->$table->string('candidate');
         });
     }
 

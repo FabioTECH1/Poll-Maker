@@ -14,113 +14,46 @@ class AddCandidateController extends Controller
     {
         $this->middleware('auth');
     }
-    public function can2(Request $request, PollTitle $title)
+    public function createPoll(Request $request)
     {
         $request->validate([
-            'title' => 'required',
-            'can-1' => 'required',
-            'can-2' => 'required',
+            '*' => 'required',
         ]);
-        $title->create([
-            'user_id' => $request->user()->id,
-            'title' => Request('title'),
+        $user = User::where('id', auth()->user()->id)->first();
+        $poll_id = $request->title . random_int(10000000, 99999999);
+        $poll_title = $user->poll_titles()->create([
+            'title' => $request->title,
+            'poll_id' => $poll_id
         ]);
-        $polltitles = PollTitle::where('title', Request("title"))->where('user_id', $request->user()->id)->get();
-        foreach ($polltitles as $polltitle) {
-            $polltitle = $polltitle->id;
+        // function to create candidates
+        function create_can($poll_title, $candidate)
+        {
+            $poll_title->candidates()->create([
+                'user_id' => auth()->user()->id,
+                'candidate' => $candidate,
+            ]);
         }
-        Candidate::create([
-            'user_id' => $request->user()->id,
-            'candidate' => Request('can-1'),
-            'poll_title_id' => $polltitle,
-        ]);
-        Candidate::create([
-            'user_id' => $request->user()->id,
-            'candidate' => Request('can-2'),
-            'poll_title_id' => $polltitle,
-
-        ]);
-        return redirect()->route('control', $polltitle);
-    }
-    public function can3(Request $request, PollTitle $title)
-    {
-        $request->validate([
-            'title' => 'required',
-            'can-1' => 'required',
-            'can-2' => 'required',
-            'can-3' => 'required',
-
-        ]);
-        $title->create([
-            'user_id' => $request->user()->id,
-            'title' => Request('title'),
-        ]);
-        $polltitles = PollTitle::where('title', Request("title"))->where('user_id', $request->user()->id)->get();
-        foreach ($polltitles as $polltitle) {
-            $polltitle = $polltitle->id;
+        if ($request->can_no == 2) {
+            create_can($poll_title, $request->can_1);
+            create_can($poll_title, $request->can_2);
+        } elseif ($request->can_no == 3) {
+            create_can($poll_title, $request->can_1);
+            create_can($poll_title, $request->can_2);
+            create_can($poll_title, $request->can_3);
+        } elseif ($request->can_no == 4) {
+            create_can($poll_title, $request->can_1);
+            create_can($poll_title, $request->can_2);
+            create_can($poll_title, $request->can_3);
+            create_can($poll_title, $request->can_4);
         }
-
-        Candidate::create([
-            'user_id' => $request->user()->id,
-            'candidate' => Request('can-1'),
-            'poll_title_id' => $polltitle,
-        ]);
-        Candidate::create([
-            'user_id' => $request->user()->id,
-            'candidate' => Request('can-2'),
-            'poll_title_id' => $polltitle,
-
-        ]);
-        Candidate::create([
-            'user_id' => $request->user()->id,
-            'candidate' => Request('can-3'),
-            'poll_title_id' => $polltitle,
-        ]);
-        return redirect()->route('control', $polltitle);
+        return redirect()->route('control', $poll_title->id);
     }
-    public function can4(Request $request, PollTitle $title)
-    {
-        $request->validate([
-            'title' => 'required',
-            'can-1' => 'required',
-            'can-2' => 'required',
-            'can-3' => 'required',
-            'can-4' => 'required',
-        ]);
-        $title->create([
-            'user_id' => $request->user()->id,
-            'title' => Request('title'),
-        ]);
-        $polltitles = PollTitle::where('title', Request("title"))->where('user_id', $request->user()->id)->get();
-        foreach ($polltitles as $polltitle) {
-            $polltitle = $polltitle->id;
-        }
-        Candidate::create([
-            'user_id' => $request->user()->id,
-            'candidate' => Request('can-1'),
-            'poll_title_id' => $polltitle,
-        ]);
-        Candidate::create([
-            'user_id' => $request->user()->id,
-            'candidate' => Request('can-2'),
-            'poll_title_id' => $polltitle,
 
-        ]);
-        Candidate::create([
-            'user_id' => $request->user()->id,
-            'candidate' => Request('can-3'),
-            'poll_title_id' => $polltitle,
-        ]);
-        Candidate::create([
-            'user_id' => $request->user()->id,
-            'candidate' => Request('can-4'),
-            'poll_title_id' => $polltitle,
-        ]);
-        return redirect()->route('control', $polltitle);
-    }
-    public function destroy($id, Request $request)
+    public function destroy($poll_id)
     {
-        PollTitle::where('id', $id)->where('user_id', $request->user()->id)->delete();
+        // delete poll
+        $user = User::where('id', auth()->user()->id)->first();
+        $user->poll_titles()->where('id', $poll_id)->delete();
         return redirect()->route('home');
     }
 }

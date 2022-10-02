@@ -16,7 +16,8 @@
                                 <div class="progress my-1" style="height: 30px">
                                     <div class="progress-bar text-start"
                                         style="width:100%; background-color:rgb(189, 189, 189)">
-                                        <form action="{{ route('vote.poll', $candidate->id) }}" method="post">
+                                        <form action="{{ route('vote.poll', [$poll->poll_id, $candidate->id]) }}"
+                                            method="post">
                                             @csrf
                                             <button class="btn btn-link text-decoration-none text-dark fw-bold"
                                                 type="submit">{{ $candidate->candidate }}</button>

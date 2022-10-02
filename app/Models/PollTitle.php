@@ -16,4 +16,8 @@ class PollTitle extends Model
     {
         return $this->hasMany(Candidate::class);
     }
+    public function voters()
+    {
+        return $this->hasMany(Voter::class);
+    }
 }

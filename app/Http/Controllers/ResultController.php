@@ -2,32 +2,32 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Candidate;
 use App\Models\PollTitle;
-use App\Models\Voter;
-use Illuminate\Http\Request;
-use SebastianBergmann\CodeCoverage\Percentage;
+
 
 class ResultController extends Controller
 {
-    public function index($id)
+    public function index($poll_id)
     {
-        $polls = PollTitle::where('id', $id)->count();
-        if ($polls < 1) {
-            abort(404);
+        //poll removed
+        $polls = PollTitle::where('poll_id', $poll_id)->get();
+        if ($polls->count() < 1) {
+            return view('errors.404');
         }
-        $polls = PollTitle::where('id', $id)->where('status', 0)->get();
+
         //if poll have not been published
-        if ($polls->count() > 0) {
+        $polls = PollTitle::where('poll_id', $poll_id)->where('status', 0)->first();
+        if ($polls) {
             return redirect()->route('login');
         }
 
-        $polls = PollTitle::where('id', $id)->where('status', 2)->get();
-        $maxVote = Candidate::where('poll_title_id', $id)->max('percent');
+        // polls published
+        $polls = PollTitle::where('poll_id', $poll_id)->where('status', 1)->first();
+        $maxVote = $polls->candidates->max('percent');
 
-        if (session('voted') || $polls->count() > 0) {
-            $polls = PollTitle::where('id', $id)->get();
-            $votersNo = Voter::where('poll_title_id', $id)->count();
+        if (session('voted') || $polls) {
+            $votersNo = $polls->voters()->count();
+            $polls = PollTitle::where('poll_id', $poll_id)->get();
 
             return view('result', [
                 'polls' => $polls,
@@ -35,6 +35,6 @@ class ResultController extends Controller
                 'maxVote' => $maxVote,
             ]);
         }
-        return redirect()->route('get.email', $id);
+        return redirect()->route('get.email', $poll_id);
     }
 }

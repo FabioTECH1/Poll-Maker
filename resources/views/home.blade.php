@@ -19,14 +19,18 @@
             <form action="{{ route('no.candidate') }}" method="post">
                 <div class="input-group mb-3">
                     @csrf
-                    <input type="text" class="form-control shadow-none" name="candidate-no"
-                        placeholder="Enter No. of Candidates ( Min of 2, Max of 4 )">
+                    <input type="number" class="form-control shadow-none" name="candidate_no"
+                        placeholder="Enter No. of Candidates ( Min of 2, Max of 4 )" autocomplete="off" required>
                     <button class="btn btn-outline-secondary shadow-none" type="submit" id="button-addon2">Proceed</button>
                 </div>
-                @error('candidate-no')<p class="text-danger my-2">{{ $message }}</p>@enderror
+                @error('candidate-no')
+                    <p class="text-danger my-2">{{ $message }}</p>
+                @enderror
             </form>
         </div>
-        @error('attendee')<p class="text-danger">{{ $message }}</p>@enderror
+        @error('attendee')
+            <p class="text-danger">{{ $message }}</p>
+        @enderror
         @if (session('msge-3'))
             <p class="text-danger text-center">{{ session('msge-3') }} </p>
         @endif
@@ -34,51 +38,38 @@
     </div>
     <div class="row">
         <div class="col-sm-4"></div>
-        @if (session('2-can'))
-            <div class="col-sm-4 text-center my-2">
-                <form action='{{ route('add.can2') }}' method="post">
-                    @csrf
-                    <input class="form-control my-3 shadow-none" placeholder="Title of poll" type="text" name="title">
-                    <input class="form-control my-3 shadow-none" placeholder="Candidate 1" type="text" name="can-1">
-                    <input class="form-control my-3 shadow-none" placeholder="Candidate 2" type="text" name="can-2">
-                    <button class="btn btn-primary my-2 shadow-none" type="submit">Add</button>
-                </form>
-            </div>
-        @endif
-        @if (session('3-can'))
-            <div class="col-sm-4 text-center my-2">
-                <form action='{{ route('add.can3') }}' method="post">
-                    @csrf
-                    <input class="form-control my-3 shadow-none" placeholder="Title of poll" type="text" name="title">
-                    <input class="form-control my-3 shadow-none" placeholder="Candidate 1" type="text" name="can-1">
-                    <input class="form-control my-3 shadow-none" placeholder="Candidate 2" type="text" name="can-2">
-                    <input class="form-control my-3 shadow-none" placeholder="Candidate 3" type="text" name="can-3">
-                    <button class="btn btn-primary my-2 shadow-none" type="submit">Add</button>
-                </form>
-            </div>
-        @endif
-        @if (session('4-can'))
-            <div class="col-sm-4  text-center my-2">
-                <form action='{{ route('add.can4') }}' method="post">
-                    @csrf
-                    <input class="form-control my-3 shadow-none" placeholder="Title of poll" type="text" name="title">
-                    <input class="form-control my-3 shadow-none" placeholder="Candidate 1" type="text" name="can-1">
-                    <input class="form-control my-3 shadow-none" placeholder="Candidate 2" type="text" name="can-2">
-                    <input class="form-control my-3 shadow-none" placeholder="Candidate 3" type="text" name="can-3">
-                    <input class="form-control my-3 shadow-none" placeholder="Candidate 4" type="text" name="can-4">
-                    <button class="btn btn-primary my-2 shadow-none" type="submit">Add</button>
-                </form>
-            </div>
-        @endif
+        <div class="col-sm-4 text-center my-2">
+            <form action='{{ route('add.can') }}' method="post">
+                @csrf
+                @if (session('can') >= 2)
+                    <input class="form-control my-3 shadow-none" placeholder="Title of poll" type="text" name="title"
+                        required>
+                    <input class="form-control my-3 shadow-none" placeholder="Candidate 1" type="text" name="can_1"
+                        required>
+                    <input class="form-control my-3 shadow-none" placeholder="Candidate 2" type="text" name="can_2"
+                        required>
+                    <input class="d-none" name="can_no" type="number" value="{{ session('can') }}">
+                @endif
+                @if (session('can') >= 3)
+                    <input class="form-control my-3 shadow-none" placeholder="Candidate 3" type="text" name="can_3"
+                        required>
+                @endif
+                @if (session('can') == 4)
+                    <input class="form-control my-3 shadow-none" placeholder="Candidate 4" type="text" name="can_4"
+                        required>
+                @endif
+                <button class="btn btn-primary my-2 shadow-none" type="submit">Add</button>
+            </form>
+        </div>
         <div class="col-sm-4"></div>
     </div>
-    @if ($checkpoll->count() > 0)
+    @if (auth()->user()->poll_titles->count() > 0)
         <div class="row">
             <div class="col-sm-4"></div>
             <div class="col-sm-4 text-center">
                 <h4 class="text-secondary my-3 text-decoration-underline">Past Polls</h4>
-                @foreach ($checkpoll as $polltitle)
-                    <a href="{{ route('control', $polltitle->id) }}" class="text-decoration-none text-capitalize">
+                @foreach (auth()->user()->poll_titles as $polltitle)
+                    <a href="{{ route('control', $polltitle->poll_id) }}" class="text-decoration-none text-capitalize">
                         <h5>{{ $polltitle->title }}
                             @if ($polltitle->status == 1)
                                 <span class="text-primary">(Active)</span>

@@ -2,54 +2,54 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Candidate;
 use App\Models\PollTitle;
-use App\Models\Voter;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class VoteController extends Controller
 {
-    public function vote($id, Request $request)
+    public function vote($poll_id, $cand_id, Request $request)
     {
-        $poll_id = $request->session()->get('poll_id');
         $email = $request->session()->get('emailVerified');
 
-        $polls = PollTitle::where('id', $poll_id)->where('status', 0)->get();
         //if poll have not been published
-        if ($polls->count() > 0) {
+        $polls = PollTitle::where('poll_id', $poll_id)->where('status', 0)->first();
+        if ($polls) {
             return redirect()->route('login');
         }
 
-        $voterMail = Voter::where('email', $email)->where('poll_title_id', $poll_id)->get();
-        if ($voterMail->count() > 0) {
+        $polls = PollTitle::where('poll_id', $poll_id)->first();
+        $voter = $polls->voters()->where('email', $email)->first();
+
+        if ($voter) {
             $request->session()->put('voted', ' ');
             $request->session()->flash('emailExists', ' ');
             return redirect()->route('get.email', $poll_id);
         }
-        Voter::create([
-            'candidate_id' => $id,
-            'email' => $request->session()->get('emailVerified'),
-            'poll_title_id' => $poll_id,
-        ]);
-        $candidates = Candidate::where('poll_title_id', $poll_id)->where('id', $id)->get();
-        // count vote and dtore for candidate
-        foreach ($candidates as $votecount) {
-            $voteupdate = $votecount->vote;
-            Candidate::where('poll_title_id', $poll_id)->where('id', $id)->update([
-                'vote' => ($voteupdate + 1),
+        DB::transaction(function () use ($email, $cand_id, $poll_id) {
+            $polls = PollTitle::where('poll_id', $poll_id)->first();
+            $polls->voters()->create([
+                'candidate_id' => $cand_id,
+                'email' => $email,
             ]);
-        }
+            $candidate = $polls->candidates()->where('id', $cand_id)->first();
 
-        $totalVote = Candidate::where('poll_title_id', $poll_id)->sum('vote');
-        $candidates = Candidate::where('poll_title_id', $poll_id)->get();
-        foreach ($candidates as $candidate) {
-            //calc candidate vote percentage
+            // count vote and store for candidate
+            $polls->candidates()->where('id', $cand_id)->update([
+                'vote' => $candidate->vote + 1,
+            ]);
+
+            // calculate percentage
+            $polls = PollTitle::where('poll_id', $poll_id)->first();
+            $totalVote =  $polls->candidates->sum('vote');
+            $candidate = $polls->candidates()->where('id', $cand_id)->first();
             $percentage = ($candidate->vote / $totalVote) * 100;
+
             // store candidate percent
-            Candidate::where('poll_title_id', $poll_id)->where('id', $candidate->id)->update([
+            $candidate->update([
                 'percent' => $percentage,
             ]);
-        }
+        });
         $request->session()->put('voted', ' ');
         return redirect()->route('poll.result', $poll_id);
     }

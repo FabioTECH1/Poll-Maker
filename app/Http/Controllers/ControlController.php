@@ -2,11 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Candidate;
 use App\Models\PollTitle;
-use Illuminate\Contracts\Session\Session;
+use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 
 class ControlController extends Controller
 {
@@ -14,20 +12,21 @@ class ControlController extends Controller
     {
         $this->middleware(['auth'])->only('index');
     }
-    public function index($id, Request $request)
+    public function index($poll_id, Request $request)
     {
-        $polls = PollTitle::where('id', $id)->where('user_id', $request->user()->id)->get();
+        $user = User::where('id', auth()->user()->id)->first();
+        $polls = $user->poll_titles()->where('poll_id', $poll_id)->get();
         $request->session()->put('voted', ' ');
         return view('control', [
             "polls" => $polls,
         ]);
     }
-    public function voteCentre($id, Request $request)
+    public function voteCentre($poll_id)
     {
         if (!session('emailVerified')) {
-            return redirect()->route('get.email', $id);
+            return redirect()->route('get.email', $poll_id);
         }
-        $polls = PollTitle::where('id', $id)->get();
+        $polls = PollTitle::where('poll_id', $poll_id)->get();
         return view('vote-centre', [
             "polls" => $polls,
         ]);
